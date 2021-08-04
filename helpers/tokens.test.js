@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { createToken } = require("./tokens");
 const { SECRET_KEY } = require("../config");
+const {sqlForPartialUpdate} = require(".sql")
 
 describe("createToken", function () {
   test("works: not admin", function () {
@@ -34,3 +35,10 @@ describe("createToken", function () {
     });
   });
 });
+
+describe("sqlForPartialUpdate" , function(){
+  test("creates a SET ")
+
+
+
+})
