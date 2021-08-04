@@ -12,6 +12,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  a1Token,
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -34,6 +35,26 @@ describe("POST /users", function () {
           isAdmin: false,
         })
         .set("authorization", `Bearer ${u1Token}`);
+        expect(resp.statusCode).toEqual(401);
+        expect(resp.body).toEqual({"error": {
+                "message": "You must be an administrator to do this",
+                "status": 401,
+              }});
+  });
+
+
+  test("works for admin: create non-admin", async function () {
+    const resp = await request(app)
+        .post("/users")
+        .send({
+          username: "u-new",
+          firstName: "First-new",
+          lastName: "Last-newL",
+          password: "password-new",
+          email: "new@email.com",
+          isAdmin: false,
+        })
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       user: {
@@ -46,7 +67,7 @@ describe("POST /users", function () {
     });
   });
 
-  test("works for users: create admin", async function () {
+  test("fails for users: create admin", async function () {
     const resp = await request(app)
         .post("/users")
         .send({
@@ -58,16 +79,11 @@ describe("POST /users", function () {
           isAdmin: true,
         })
         .set("authorization", `Bearer ${u1Token}`);
-    expect(resp.statusCode).toEqual(201);
-    expect(resp.body).toEqual({
-      user: {
-        username: "u-new",
-        firstName: "First-new",
-        lastName: "Last-newL",
-        email: "new@email.com",
-        isAdmin: true,
-      }, token: expect.any(String),
-    });
+    expect(resp.statusCode).toEqual(401);
+    expect(resp.body).toEqual({"error": {
+      "message": "You must be an administrator to do this",
+      "status": 401,
+    }});
   });
 
   test("unauth for anon", async function () {
@@ -90,7 +106,7 @@ describe("POST /users", function () {
         .send({
           username: "u-new",
         })
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -105,18 +121,20 @@ describe("POST /users", function () {
           email: "not-an-email",
           isAdmin: true,
         })
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.statusCode).toEqual(400);
   });
+
 });
+
 
 /************************************** GET /users */
 
 describe("GET /users", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
         .get("/users")
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.body).toEqual({
       users: [
         {
@@ -144,6 +162,19 @@ describe("GET /users", function () {
     });
   });
 
+  test("Fails if user is not an admin", async function () {
+      const resp = await request(app)
+          .get("/users")
+          .set("authorization", `Bearer ${u1Token}`);
+          expect(resp.statusCode).toEqual(401);
+          expect(resp.body).toEqual({"error": {
+                  "message": "You must be an administrator to do this",
+                  "status": 401,
+    }});
+  })
+
+    
+
   test("unauth for anon", async function () {
     const resp = await request(app)
         .get("/users");
@@ -162,6 +193,7 @@ describe("GET /users", function () {
   });
 });
 
+
 /************************************** GET /users/:username */
 
 describe("GET /users/:username", function () {
@@ -169,6 +201,21 @@ describe("GET /users/:username", function () {
     const resp = await request(app)
         .get(`/users/u1`)
         .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({
+      user: {
+        username: "u1",
+        firstName: "U1F",
+        lastName: "U1L",
+        email: "user1@user.com",
+        isAdmin: false,
+      },
+    });
+  });
+
+  test("works for users", async function () {
+    const resp = await request(app)
+        .get(`/users/u1`)
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.body).toEqual({
       user: {
         username: "u1",
@@ -189,7 +236,7 @@ describe("GET /users/:username", function () {
   test("not found if user not found", async function () {
     const resp = await request(app)
         .get(`/users/nope`)
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${a1Token}`);
     expect(resp.statusCode).toEqual(404);
   });
 });
