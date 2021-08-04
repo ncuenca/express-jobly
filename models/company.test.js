@@ -317,3 +317,50 @@ describe("remove", function () {
     }
   });
 });
+
+/************************************** HELPER FUNCTION sqlForCompanyFilter */
+
+describe("sqlForCompanyFilter", function () {
+  test("creates SQL string for correct WHERE conditions and values ", function () {
+    const search = {
+      name: "nathan",
+      minEmployees: 100,
+      maxEmployees: 1000
+    };
+    const query = sqlForCompanyFilter(search);
+
+    expect(query).toEqual(
+      {
+        sqlFilter: '"name" ILIKE $1 AND "num_employees" >= $2 AND "num_employees" <= $3',
+        values: ['%nathan%', 100, 1000]
+      }
+    );
+  });
+
+  test("minEmployees > maxEmployees should throw a Bad Request Error ", function () {
+    const search = {
+      name: "nathan",
+      minEmployees: 1000,
+      maxEmployees: 100
+    };
+
+    function badSQLForCompanyFilter() {
+      sqlForCompanyFilter(search)
+    }
+    expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
+  });
+
+  test("Invalid filters should throw a Bad Request Error ", function () {
+    const search = {
+      name: "nathan",
+      minEmployees: 1000,
+      maxEmployees: 100,
+      is_cool: "yup"
+    };
+
+    function badSQLForCompanyFilter() {
+      sqlForCompanyFilter(search)
+    }
+    expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
+  });
+});

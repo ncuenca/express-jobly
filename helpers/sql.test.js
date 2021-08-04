@@ -1,14 +1,13 @@
 "use strict"
 
 const { BadRequestError } = require("../expressError");
-const { sqlForPartialUpdate, sqlForCompanyFilter } = require("./sql");
+const { sqlForPartialUpdate } = require("./sql");
 
-//different firstname and lastname
 describe("sqlForPartialUpdate", function () {
   test("creates a SET sql param and a value field ", function () {
     const data = {
       firstName: "Nathan",
-      lastName: "Nathan",
+      lastName: "Cuenca",
       age: 23
     };
     const jsToSql = {
@@ -20,7 +19,7 @@ describe("sqlForPartialUpdate", function () {
     expect(query).toEqual(
       {
         setCols: '"first_name"=$1, "last_name"=$2, "age"=$3',
-        values: ['Nathan', 'Nathan', 23]
+        values: ['Nathan', 'Cuenca', 23]
       }
     );
   });
@@ -40,33 +39,3 @@ describe("sqlForPartialUpdate", function () {
   });
 });
 
-describe("sqlForCompanyFilter", function () {
-  test("creates SQL string for correct WHERE conditions and values ", function () {
-    const search = {
-      name: "nathan",
-      minEmployees: 100,
-      maxEmployees: 1000
-    };
-    const query = sqlForCompanyFilter(search);
-
-    expect(query).toEqual(
-      {
-        sqlFilter: '"name" ILIKE $1 AND "num_employees" >= $2 AND "num_employees" <= $3',
-        values: ['%nathan%', 100, 1000]
-      }
-    );
-  });
-
-  test("minEmployees > maxEmployees should return a Bad Request Error ", function () {
-    const search = {
-      name: "nathan",
-      minEmployees: 1000,
-      maxEmployees: 100
-    };
-
-    function badSQLForCompanyFilter() {
-      sqlForCompanyFilter(search)
-    }
-    expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
-  });
-});

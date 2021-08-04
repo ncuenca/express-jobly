@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate, sqlForCompanyFilter } = require("../helpers/sql");
+const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -164,5 +164,51 @@ class Company {
   }
 }
 
+
+/******************************** HELPER FUNCTIONS *********************************/
+
+/**
+ * search is request body that may include fields to filter by
+ * ex. {"minEmployees" : 100, "maxEmployees": 1000}
+ * 
+ * returns SQL WHERE conditions and array of data to fill in conditions
+ * { setCols :'"numEmployees >= $1 AND numEmployees <= $2',
+ * values: [100, 1000] }
+ */
+ function sqlForCompanyFilter(search) {
+  const keys = Object.keys(search);
+
+  const valid_keys = new Set(['name', 'minEmployees', 'maxEmployees']);
+  keys.forEach(function(key) {
+    if (!(valid_keys.has(key))) {
+      throw new BadRequestError("Invalid filter");
+    } 
+  }); 
+
+  if (search.minEmployees > search.maxEmployees) {
+    throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
+  }
+  const sqlFilter = []
+  let idx = 1
+  if ( search.name ) {
+    search.name = `%${search.name}%`
+    sqlFilter.push(`"name" ILIKE $${idx }`);
+    idx++
+  }
+  if ( search.minEmployees ) {
+    sqlFilter.push(`"num_employees" >= $${idx }`);
+    idx++
+  }
+  if ( search.maxEmployees ) {
+    sqlFilter.push(`"num_employees" <= $${idx }`);
+    idx++
+  }
+
+
+  return {
+    sqlFilter: sqlFilter.join(" AND "),
+    values: Object.values(search),
+  };
+}
 
 module.exports = Company;
