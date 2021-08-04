@@ -49,7 +49,6 @@ function ensureLoggedIn(req, res, next) {
 
  function ensureAdmin(req, res, next) {
   try {
-    console.log(res.locals.user);
     if (res.locals.user.isAdmin !== true) {
       throw new UnauthorizedError("You must be an administrator to do this");
     }
