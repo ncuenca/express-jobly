@@ -36,9 +36,3 @@ describe("createToken", function () {
   });
 });
 
-describe("sqlForPartialUpdate" , function(){
-  test("creates a SET ")
-
-
-
-})

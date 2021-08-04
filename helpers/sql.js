@@ -2,13 +2,15 @@ const { BadRequestError } = require("../expressError");
 
 // THIS NEEDS SOME GREAT DOCUMENTATION.
 
-/**  dataToUpdate takes in an object of column,value pairs of values to update
+/**  
+ * dataToUpdate takes in an object of column,value pairs of values to update
  * jsToSql is an object of JS column name keys and SQL column name values
- * { firstName, lastName, }, {firstName:"first_name", lastName: "last_name"} =>
+ * dataToUpdate ex. { firstName:"simon", lastName:"zhang" }
+ * jsToSql ex. {firstName:"first_name", lastName: "last_name"}
  *
- * returns SQL SET string and an array of data to fill in input fields
- * { setCols :['"first_name"=$1', '"last_name"=$2'] ,
- * values: [FirstName, LastName ] }
+ * returns SQL SET string and an array of data to fill in SET values
+ * { setCols :'"first_name"=$1', '"last_name"=$2' ,
+ * values: ["simon", "zhang"] }
  */
 
 
@@ -27,21 +29,28 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
+/**
+ * search is request body that may include fields to filter by
+ * ex. {"minEmployees" : 100, "maxEmployees": 1000}
+ * 
+ * returns SQL WHERE conditions and array of data to fill in conditions
+ * { setCols :'"numEmployees >= $1 AND numEmployees <= 1000',
+ * values: [100, 1000] }
+ */
 function sqlForCompanyFilter(search) {
   const keys = Object.keys(search);
   if (search["minEmployees"] > search["maxEmployees"]) {
-    throw new BadRequestError
+    throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
   }
-  // {firstName: 'Aliya', age: 32} => ['"first_name"=$1', '"age"=$2']
   const sqlFilter = keys.map((colName, idx) => {
     if (colName === 'name') {
-      `"name" ILIKE $${idx + 1}`
+      return `"name" ILIKE $${idx + 1}`;
     }
     if (colName === 'minEmployees') {
-      `"num_employees" >= $${idx + 1}`
+      return `"num_employees" >= $${idx + 1}`;
     }
     if (colName === 'maxEmployees') {
-      `"num_employees" <= $${idx + 1}`
+      return `"num_employees" <= $${idx + 1}`;
     }
   }
   );
@@ -51,5 +60,7 @@ function sqlForCompanyFilter(search) {
   };
 }
 
-module.exports = { sqlForPartialUpdate,
-sqlForCompanyFilter };
+module.exports = { 
+  sqlForPartialUpdate,
+  sqlForCompanyFilter 
+};

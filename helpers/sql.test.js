@@ -1,17 +1,7 @@
 "use strict"
-const { BadRequestError } = require("../expressError")
-const { sqlForPartialUpdate } = require("./sql")
 
-// describe("createToken", function () {
-//   test("works: not admin", function () {
-//     const token = createToken({ username: "test", is_admin: false });
-//     const payload = jwt.verify(token, SECRET_KEY);
-//     expect(payload).toEqual({
-//       iat: expect.any(Number),
-//       username: "test",
-//       isAdmin: false,
-//     });
-//   });
+const { BadRequestError } = require("../expressError");
+const { sqlForPartialUpdate, sqlForCompanyFilter } = require("./sql");
 
 
 describe("sqlForPartialUpdate", function () {
@@ -20,32 +10,63 @@ describe("sqlForPartialUpdate", function () {
       firstName: "Nathan",
       lastName: "Nathan",
       age: 23
-    }
+    };
     const jsToSql = {
       firstName: "first_name",
       lastName: "last_name"
-    }
-    const query = sqlForPartialUpdate(data, jsToSql)
+    };
+    const query = sqlForPartialUpdate(data, jsToSql);
 
     expect(query).toEqual(
       {
         setCols: '"first_name"=$1, "last_name"=$2, "age"=$3',
         values: ['Nathan', 'Nathan', 23]
       }
-    )
-  })
+    );
+  });
 
   test("expecting empty data to throw error ", function () {
     const data = {
-    }
+    };
     const jsToSql = {
       firstName: "first_name",
       lastName: "last_name"
-    }
+    };
 
     function badSQLPartialUpdate() {
-      sqlForPartialUpdate(data, jsToSql)
+      sqlForPartialUpdate(data, jsToSql);
     }
-    expect(badSQLPartialUpdate).toThrowError(BadRequestError)
-  })
-})
+    expect(badSQLPartialUpdate).toThrowError(BadRequestError);
+  });
+});
+
+describe("sqlForCompanyFilter", function () {
+  test("creates SQL string for correct WHERE conditions and values ", function () {
+    const search = {
+      name: "nathan",
+      minEmployees: 100,
+      maxEmployees: 1000
+    };
+    const query = sqlForCompanyFilter(search);
+
+    expect(query).toEqual(
+      {
+        sqlFilter: '"name" ILIKE $1 AND "num_employees" >= $2 AND "num_employees" <= $3',
+        values: ['nathan', 100, 1000]
+      }
+    );
+  });
+
+  test("minEmployees > maxEmployees should return a Bad Request Error ", function () {
+    const search = {
+      name: "nathan",
+      minEmployees: 1000,
+      maxEmployees: 100
+    };
+
+    function badSQLForCompanyFilter() {
+      sqlForCompanyFilter(search)
+    }
+    expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
+  });
+});

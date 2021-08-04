@@ -66,13 +66,13 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** Filter all companies.
+  /** Find companies by filter.
    * 
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
    static async findFilter(search) {
-    const { sqlFilter , values} = sqlForCompanyFilter(search )
+    const { sqlFilter , values } = sqlForCompanyFilter(search);
     const querySQL =`
       SELECT handle,
               name,
@@ -80,7 +80,7 @@ class Company {
               num_employees AS "numEmployees",
               logo_url AS "logoUrl"
       FROM companies
-      WHERE = ${sqlFilter}
+      WHERE ${sqlFilter}
     `
     const filteredCompaniesRes = await db.query(querySQL , [...values]);
     return filteredCompaniesRes.rows;
