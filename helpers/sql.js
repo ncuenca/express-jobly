@@ -34,26 +34,34 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
  * ex. {"minEmployees" : 100, "maxEmployees": 1000}
  * 
  * returns SQL WHERE conditions and array of data to fill in conditions
- * { setCols :'"numEmployees >= $1 AND numEmployees <= 1000',
+ * { setCols :'"numEmployees >= $1 AND numEmployees <= $2',
  * values: [100, 1000] }
  */
+//move this to models to company, it's not generaic enough to warrant as we use it only in the company models
+//we know what our keys are
 function sqlForCompanyFilter(search) {
   const keys = Object.keys(search);
-  if (search["minEmployees"] > search["maxEmployees"]) {
+  
+  if (search.minEmployees > search.maxEmployees) {
     throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
   }
-  const sqlFilter = keys.map((colName, idx) => {
-    if (colName === 'name') {
-      return `"name" ILIKE $${idx + 1}`;
-    }
-    if (colName === 'minEmployees') {
-      return `"num_employees" >= $${idx + 1}`;
-    }
-    if (colName === 'maxEmployees') {
-      return `"num_employees" <= $${idx + 1}`;
-    }
+  const sqlFilter = []
+  let idx = 1
+  if ( search.name ) {
+    search.name = `%${search.name}%`
+    sqlFilter.push(`"name" ILIKE $${idx }`);
+    idx++
   }
-  );
+  if ( search.minEmployees ) {
+    sqlFilter.push(`"num_employees" >= $${idx }`);
+    idx++
+  }
+  if ( search.maxEmployees ) {
+    sqlFilter.push(`"num_employees" <= $${idx }`);
+    idx++
+  }
+
+
   return {
     sqlFilter: sqlFilter.join(" AND "),
     values: Object.values(search),

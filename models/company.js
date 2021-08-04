@@ -81,7 +81,7 @@ class Company {
               logo_url AS "logoUrl"
       FROM companies
       WHERE ${sqlFilter}
-    `
+    `//remove spread.
     const filteredCompaniesRes = await db.query(querySQL , [...values]);
     return filteredCompaniesRes.rows;
   }

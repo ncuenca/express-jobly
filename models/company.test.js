@@ -87,6 +87,117 @@ describe("findAll", function () {
   });
 });
 
+
+
+/************************************** findFilter */
+
+describe("findilter", function () {
+  test("works: w/ filter min 2", async function () {
+    let companies = await Company.findFilter({
+        minEmployees:2
+    });
+    expect(companies).toEqual([
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      },
+    ]);
+  });
+
+  test("works: w/ filter min 1 max 3" , async function () {
+    let companies = await Company.findFilter({
+        minEmployees:1,
+        maxEmployees:3
+    });
+    expect(companies).toEqual([
+      {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      },
+    ]);
+  });
+
+  test("works: w/ filter name" , async function () {
+    let companies = await Company.findFilter({
+        name:"c"
+    });
+    expect(companies).toEqual([
+      {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      },
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      },
+    ]);
+  });
+
+  test("works: w/ filter name" , async function () {
+      let companies = await Company.findFilter({
+          name:"c1"
+      });
+      expect(companies).toEqual([
+        {
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        },
+      ]);
+  });
+  
+  test("works: w/ filter name" , async function () {
+    let companies = await Company.findFilter({
+        name:"d"
+    });
+    expect(companies).toEqual([]);
+});
+
+});
+
+
 /************************************** get */
 
 describe("get", function () {

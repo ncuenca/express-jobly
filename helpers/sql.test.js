@@ -3,7 +3,7 @@
 const { BadRequestError } = require("../expressError");
 const { sqlForPartialUpdate, sqlForCompanyFilter } = require("./sql");
 
-
+//different firstname and lastname
 describe("sqlForPartialUpdate", function () {
   test("creates a SET sql param and a value field ", function () {
     const data = {
@@ -52,7 +52,7 @@ describe("sqlForCompanyFilter", function () {
     expect(query).toEqual(
       {
         sqlFilter: '"name" ILIKE $1 AND "num_employees" >= $2 AND "num_employees" <= $3',
-        values: ['nathan', 100, 1000]
+        values: ['%nathan%', 100, 1000]
       }
     );
   });
