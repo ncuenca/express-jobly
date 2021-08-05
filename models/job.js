@@ -7,13 +7,13 @@ const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for jobs */
 
-class Jobs{
+class Job {
 
    /** Create a job (from data), update db, return new job data.
    *
    * data should be { title, salary, equity, company_handle }
    *
-   * Returns { id, title, salary, equity, company_handle }
+   * Returns { id, title, salary, equity, companyHandle }
    * */
   static async create({ title, salary, equity, companyHandle }){
     const result = await db.query(
@@ -24,7 +24,7 @@ class Jobs{
       company_handle)
       VALUES
         ($1, $2, $3, $4)
-      RETURNING id, title, salary, equity, company_handle `,
+      RETURNING id, title, salary, equity, company_handle as "companyHandle" `,
       [title, salary, equity, companyHandle],
     );
 
@@ -34,32 +34,34 @@ class Jobs{
 
    /** Find all job.
    *
-   * Returns { id, title, salary, equity, company_handle }
+   * Returns { id, title, salary, equity, companyHandle }
    * */
 
   static async findAll(){
     const JobsRes = await db.query(
-      `SELECT 
+      `SELECT
+      id,
       title,
       salary,
       equity,
-      company_handle AS "companyHandle"
+      company_handle as "companyHandle"
       FROM jobs
-      ORDER BY companyHandle, title
+      ORDER BY company_handle, title
       `
     );
     return JobsRes.rows;
   }
 
-    /** Find jobs by filter.
+  /** Find jobs by filter.
    * 
-   * Returns [{ id, title, salary, equity, company_handle }, ...]
+   * Returns [{ id, title, salary, equity, companyHandle }, ...]
    * */
 
   static async findFilter(search){
-      const { sqlFilter , values } = Jobs.sqlForCompanyFilter(search);
+      const { sqlFilter , values } = Job.sqlForJobFilter(search);
       const querySQL = 
       `SELECT 
+      id,
       title,
       salary,
       equity,
@@ -68,7 +70,7 @@ class Jobs{
       WHERE ${sqlFilter}
       `
       const filteredJobsRes = await db.query(querySQL, values);
-      return filteredJobsRes;
+      return filteredJobsRes.rows;
     }
 
      /** Given a jobs handle, return data about jobs.
@@ -82,16 +84,17 @@ class Jobs{
 
   static async get(id){
     const jobsRes = await db.query(
-      `SELECT 
+      `SELECT
+      id,
       title,
       salary,
       equity,
       company_handle AS "companyHandle"
       FROM jobs
-      WHERE ${id}
-      `
+      WHERE id = $1`,
+      [id]
     );
-    const job = job.rows[0];
+    const job = jobsRes.rows[0];
     if(!job) throw new NotFoundError(`No company: ${id}`);
     return job;
   }
@@ -123,7 +126,7 @@ class Jobs{
     WHERE id = ${idVarIdx}
     RETURNING id, title, salary, equity, company_handle AS "companyHandle"
     `
-    const result = await db.query(querySQL,[...values,id]);
+    const result = await db.query(querySQL,[...values, id]);
     const job = result.rows[0];
 
     if( !job ) throw new NotFoundError(`No job: ${id}`)
@@ -159,7 +162,7 @@ class Jobs{
  * values: [100000, true] }
  */
  
- static sqlForJobsFilter(search) {
+ static sqlForJobFilter(search) {
   const keys = Object.keys(search);
 
   const valid_keys = new Set(['title', 'minSalary', 'hasEquity']);
@@ -174,15 +177,16 @@ class Jobs{
   let idx = 1
   if ( search.title ) {
     search.title = `%${search.title}%`
-    sqlFilter.push(`"title" ILIKE $${idx }`);
+    sqlFilter.push(`"title" ILIKE $${idx}`);
     idx++
   }
   if ( search.minSalary ) {
-    sqlFilter.push(`"salary" >= $${idx }`);
+    sqlFilter.push(`"salary" >= $${idx}`);
     idx++
   }
-  if ( search.hasEquity ) {
-    sqlFilter.push(`"equity" <= $${idx }`);
+  if ( search.hasEquity === true ) {
+    search.hasEquity = 0;
+    sqlFilter.push(`"equity" > $${idx}`);
     idx++
   }
 
@@ -194,4 +198,4 @@ class Jobs{
 
 }
 
-module.exports = Jobs;
+module.exports = Job;

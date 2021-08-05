@@ -91,7 +91,7 @@ describe("findAll", function () {
 
 /************************************** findFilter */
 
-describe("findilter", function () {
+describe("findFilter", function () {
   test("works: w/ filter min 2", async function () {
     let companies = await Company.findFilter({
         minEmployees:2
@@ -193,7 +193,7 @@ describe("findilter", function () {
         name:"d"
     });
     expect(companies).toEqual([]);
-});
+    });
 
 });
 
