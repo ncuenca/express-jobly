@@ -82,7 +82,7 @@ class Company {
       FROM companies
       WHERE ${sqlFilter}
     `
-    const filteredCompaniesRes = await db.query(querySQL , [...values]);
+    const filteredCompaniesRes = await db.query(querySQL , values);
     return filteredCompaniesRes.rows;
   }
 
@@ -170,7 +170,7 @@ class Company {
  * ex. {"minEmployees" : 100, "maxEmployees": 1000}
  * 
  * returns SQL WHERE conditions and array of data to fill in conditions
- * { setCols :'"numEmployees >= $1 AND numEmployees <= $2',
+ * { sqlFilter :'"numEmployees >= $1 AND numEmployees <= $2',
  * values: [100, 1000] }
  */
   static sqlForCompanyFilter(search) {
