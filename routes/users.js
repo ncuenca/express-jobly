@@ -24,7 +24,7 @@ const router = express.Router();
  * This returns the newly created user and an authentication token for them:
  *  {user: { username, firstName, lastName, email, isAdmin }, token }
  *
- * Authorization required: login
+ * Authorization required: login and admin
  **/
 
 router.post("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
@@ -44,7 +44,7 @@ router.post("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
  *
  * Returns list of all users.
  *
- * Authorization required: login
+ * Authorization required: login and admin
  **/
 
 router.get("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
@@ -57,14 +57,14 @@ router.get("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: self-authentication or admin
  **/
 
 router.get("/:username", ensureLoggedIn, async function (req, res, next) {
   if( res.locals.user.username !== req.params.username && res.locals.user.isAdmin === false ){
     throw new UnauthorizedError();
   }
-  
+
   const user = await User.get(req.params.username);
   return res.json({ user });
 });
@@ -77,7 +77,7 @@ router.get("/:username", ensureLoggedIn, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: self-authentication or admin
  **/
 
 router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
@@ -98,10 +98,14 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
 
 /** DELETE /[username]  =>  { deleted: username }
  *
- * Authorization required: login
+ * Authorization required: self-authentication or admin
  **/
 
 router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
+  if( res.locals.user.username !== req.params.username && res.locals.user.isAdmin === false ){
+    throw new UnauthorizedError();
+  }
+  
   await User.remove(req.params.username);
   return res.json({ deleted: req.params.username });
 });
