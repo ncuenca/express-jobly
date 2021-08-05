@@ -155,5 +155,36 @@ describe("GET /jobs", function () {
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(500);
   });
-
 });
+
+
+/************************************** GET /jobs/:handle */
+
+describe("GET /jobs/:handle", function () {
+  test("works for anon", async function () {
+    let jobId = await getJobId();
+    const resp = await request(app).get(`/jobs/${jobId}`);
+    expect(resp.body).toEqual({job: {
+            id: expect.any(Number),
+            title: 't1',
+            salary: 100000,
+            equity: "0.02",
+            companyHandle: 'c1',
+    }});
+  });
+
+  test("not found for no such company", async function () {
+    const resp = await request(app).get(`/jobs/0`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
+
+/************************************** HELPER FUNCTION */
+async function getJobId() {
+  let result = await db.query(`
+  SELECT id
+  FROM jobs
+  WHERE title = 't1'
+  `);
+  return result.rows[0].id;
+}

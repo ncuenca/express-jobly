@@ -62,4 +62,16 @@ const router = new express.Router();
   return res.json({ jobs });
 });
 
+/** GET /[id]  =>  { job }
+ *
+ *  Job is { id, title, salary, equity, companyHandle }
+ * 
+ * Authorization required: none
+ */
+
+ router.get("/:id", async function (req, res, next) {
+  const job = await Job.get(req.params.id);
+  return res.json({ job });
+});
+
 module.exports = router;
