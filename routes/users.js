@@ -61,6 +61,10 @@ router.get("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
  **/
 
 router.get("/:username", ensureLoggedIn, async function (req, res, next) {
+  if( res.locals.user.username !== req.params.username && res.locals.user.isAdmin === false ){
+    throw new UnauthorizedError();
+  }
+  
   const user = await User.get(req.params.username);
   return res.json({ user });
 });
