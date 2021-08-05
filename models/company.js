@@ -186,8 +186,9 @@ class Company {
     if (search.minEmployees > search.maxEmployees) {
       throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
     }
-    const sqlFilter = []
-    let idx = 1
+
+    const sqlFilter = [];
+    let idx = 1;
     if ( search.name ) {
       search.name = `%${search.name}%`
       sqlFilter.push(`"name" ILIKE $${idx }`);
@@ -201,8 +202,7 @@ class Company {
       sqlFilter.push(`"num_employees" <= $${idx }`);
       idx++
     }
-
-
+    
     return {
       sqlFilter: sqlFilter.join(" AND "),
       values: Object.values(search),

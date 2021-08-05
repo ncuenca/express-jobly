@@ -172,21 +172,22 @@ class Job {
     } 
   }); 
 
-  const sqlFilter = []
-  let idx = 1
+  const sqlFilter = [];
+  let idx = 1;
+
   if ( search.title ) {
     search.title = `%${search.title}%`
     sqlFilter.push(`"title" ILIKE $${idx}`);
-    idx++
+    idx++;
   }
   if ( search.minSalary ) {
     sqlFilter.push(`"salary" >= $${idx}`);
-    idx++
+    idx++;
   }
   if ( search.hasEquity === true ) {
     search.hasEquity = 0;
     sqlFilter.push(`"equity" > $${idx}`);
-    idx++
+    idx++;
   }
 
   return {

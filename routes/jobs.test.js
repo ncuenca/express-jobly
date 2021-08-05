@@ -81,3 +81,79 @@ describe("POST /jobs", function () {
   });
 
 });
+
+/************************************** GET /jobs */
+
+describe("GET /jobs", function () {
+  test("ok for anon", async function () {
+    const resp = await request(app).get("/jobs");
+    expect(resp.body).toEqual({
+      jobs:
+        [
+          {
+            id: expect.any(Number),
+            title: 't1',
+            salary: 100000,
+            equity: "0.02",
+            companyHandle: 'c1',
+          },
+          {
+            id: expect.any(Number),
+            title: 't2',
+            salary: 120000,
+            equity: "0",
+            companyHandle: "c2",
+          },
+          {
+            id: expect.any(Number),
+            title: 't3',
+            salary: 160000,
+            equity: "0",
+            companyHandle: "c2",
+          }
+        ],
+    });
+  });
+
+  test("ok for anon with filter", async function () {
+    const query = { title: 't3' }
+    const resp = await (request(app).get("/jobs").send(query));
+    expect(resp.body).toEqual({ jobs:[
+      {
+      id: expect.any(Number),
+      title: 't3',
+      salary: 160000,
+      equity: "0",
+      companyHandle: "c2",
+      }
+    ]});
+  });
+
+  test("Sad Path for invalid inputs", async function () {
+    const query = { title: 600, salary: "fsdfd", hasEquity: "ffdfd" }
+    const resp = await (request(app).get("/jobs").send(query));
+
+    expect(resp.body).toEqual({
+      "error": {
+        "message": [
+          "instance.title is not of a type(s) string",
+          "instance.salary is not of a type(s) integer",
+          "instance.hasEquity is not of a type(s) boolean"
+        ],
+        "status": 400
+      }
+    });
+  });
+
+  test("fails: test next() handler", async function () {
+    // there's no normal failure event which will cause this route to fail ---
+    // thus making it hard to test that the error-handler works with it. This
+    // should cause an error, all right :)
+    await db.query("DROP TABLE companies CASCADE");
+    const resp = await request(app)
+      .get("/companies")
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(500);
+  });
+
+});
