@@ -327,7 +327,7 @@ describe("sqlForCompanyFilter", function () {
       minEmployees: 100,
       maxEmployees: 1000
     };
-    const query = sqlForCompanyFilter(search);
+    const query = Company.sqlForCompanyFilter(search);
 
     expect(query).toEqual(
       {
@@ -345,7 +345,7 @@ describe("sqlForCompanyFilter", function () {
     };
 
     function badSQLForCompanyFilter() {
-      sqlForCompanyFilter(search)
+      Company.sqlForCompanyFilter(search)
     }
     expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
   });
@@ -359,7 +359,7 @@ describe("sqlForCompanyFilter", function () {
     };
 
     function badSQLForCompanyFilter() {
-      sqlForCompanyFilter(search)
+      Company.sqlForCompanyFilter(search)
     }
     expect(badSQLForCompanyFilter).toThrowError(BadRequestError)
   });

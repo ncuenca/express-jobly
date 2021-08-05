@@ -72,7 +72,7 @@ class Company {
    * */
 
    static async findFilter(search) {
-    const { sqlFilter , values } = sqlForCompanyFilter(search);
+    const { sqlFilter , values } = Company.sqlForCompanyFilter(search);
     const querySQL =`
       SELECT handle,
               name,
@@ -162,10 +162,8 @@ class Company {
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
-}
 
-
-/******************************** HELPER FUNCTIONS *********************************/
+  /******************************** HELPER FUNCTIONS *********************************/
 
 /**
  * search is request body that may include fields to filter by
@@ -175,40 +173,44 @@ class Company {
  * { setCols :'"numEmployees >= $1 AND numEmployees <= $2',
  * values: [100, 1000] }
  */
- function sqlForCompanyFilter(search) {
-  const keys = Object.keys(search);
+  static sqlForCompanyFilter(search) {
+    const keys = Object.keys(search);
 
-  const valid_keys = new Set(['name', 'minEmployees', 'maxEmployees']);
-  keys.forEach(function(key) {
-    if (!(valid_keys.has(key))) {
-      throw new BadRequestError("Invalid filter");
-    } 
-  }); 
+    const valid_keys = new Set(['name', 'minEmployees', 'maxEmployees']);
+    keys.forEach(function(key) {
+      if (!(valid_keys.has(key))) {
+        throw new BadRequestError("Invalid filter");
+      } 
+    }); 
 
-  if (search.minEmployees > search.maxEmployees) {
-    throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
-  }
-  const sqlFilter = []
-  let idx = 1
-  if ( search.name ) {
-    search.name = `%${search.name}%`
-    sqlFilter.push(`"name" ILIKE $${idx }`);
-    idx++
-  }
-  if ( search.minEmployees ) {
-    sqlFilter.push(`"num_employees" >= $${idx }`);
-    idx++
-  }
-  if ( search.maxEmployees ) {
-    sqlFilter.push(`"num_employees" <= $${idx }`);
-    idx++
-  }
+    if (search.minEmployees > search.maxEmployees) {
+      throw new BadRequestError("minEmployees must be less than or equal to maxEmployees")
+    }
+    const sqlFilter = []
+    let idx = 1
+    if ( search.name ) {
+      search.name = `%${search.name}%`
+      sqlFilter.push(`"name" ILIKE $${idx }`);
+      idx++
+    }
+    if ( search.minEmployees ) {
+      sqlFilter.push(`"num_employees" >= $${idx }`);
+      idx++
+    }
+    if ( search.maxEmployees ) {
+      sqlFilter.push(`"num_employees" <= $${idx }`);
+      idx++
+    }
 
 
-  return {
-    sqlFilter: sqlFilter.join(" AND "),
-    values: Object.values(search),
+    return {
+      sqlFilter: sqlFilter.join(" AND "),
+      values: Object.values(search),
+    };
   };
 }
+
+
+
 
 module.exports = Company;
