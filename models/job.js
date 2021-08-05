@@ -73,10 +73,9 @@ class Job {
       return filteredJobsRes.rows;
     }
 
-     /** Given a jobs handle, return data about jobs.
+     /** Given a job's id, return data about job.
    *
-   * Returns { handle, name, description, numEmployees, logoUrl, jobs }
-   *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
+   * Returns { id, title, salary, equity, companyHandle }
    *
    * Throws NotFoundError if not found.
    **/
@@ -99,7 +98,7 @@ class Job {
     return job;
   }
 
-  /** Update company data with `data`.
+  /** Update job data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
    * fields; this only changes provided ones.
@@ -128,7 +127,6 @@ class Job {
     `
     const result = await db.query(querySQL,[...values, id]);
     const job = result.rows[0];
-
     if( !job ) throw new NotFoundError(`No job: ${id}`)
     
     return job
@@ -136,7 +134,7 @@ class Job {
     
   /** Delete given job from database; returns undefined.
    *
-   * Throws NotFoundError if company not found.
+   * Throws NotFoundError if job not found.
    **/
 
    static async remove(id) {
@@ -146,8 +144,9 @@ class Job {
            WHERE id = $1
            RETURNING id`,
         [id]);
-    const company = result.rows[0];
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+    const job = result.rows[0];
+    console.log(job)
+    if (!job) throw new NotFoundError(`No company: ${id}`);
   }
 
 
