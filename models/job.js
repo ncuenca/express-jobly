@@ -9,13 +9,13 @@ const { sqlForPartialUpdate } = require("../helpers/sql");
 
 class Job {
 
-   /** Create a job (from data), update db, return new job data.
-   *
-   * data should be { title, salary, equity, company_handle }
-   *
-   * Returns { id, title, salary, equity, companyHandle }
-   * */
-  static async create({ title, salary, equity, companyHandle }){
+  /** Create a job (from data), update db, return new job data.
+  *
+  * data should be { title, salary, equity, company_handle }
+  *
+  * Returns { id, title, salary, equity, companyHandle }
+  * */
+  static async create({ title, salary, equity, companyHandle }) {
     const result = await db.query(
       `INSERT INTO jobs(
       title, 
@@ -28,16 +28,16 @@ class Job {
       [title, salary, equity, companyHandle],
     );
 
-  const job = result.rows[0];
-  return job;
+    const job = result.rows[0];
+    return job;
   }
 
-   /** Find all job.
-   *
-   * Returns { id, title, salary, equity, companyHandle }
-   * */
+  /** Find all job.
+  *
+  * Returns { id, title, salary, equity, companyHandle }
+  * */
 
-  static async findAll(){
+  static async findAll() {
     const JobsRes = await db.query(
       `SELECT
       id,
@@ -57,9 +57,9 @@ class Job {
    * Returns [{ id, title, salary, equity, companyHandle }, ...]
    * */
 
-  static async findFilter(search){
-      const { sqlFilter , values } = Job.sqlForJobFilter(search);
-      const querySQL = 
+  static async findFilter(search) {
+    const { sqlFilter, values } = Job.sqlForJobFilter(search);
+    const querySQL =
       `SELECT 
       id,
       title,
@@ -69,19 +69,19 @@ class Job {
       FROM jobs
       WHERE ${sqlFilter}
       `
-      const filteredJobsRes = await db.query(querySQL, values);
-      return filteredJobsRes.rows;
-    }
+    const filteredJobsRes = await db.query(querySQL, values);
+    return filteredJobsRes.rows;
+  }
 
-     /** Given a job's id, return data about job.
-   *
-   * Returns { id, title, salary, equity, companyHandle }
-   *
-   * Throws NotFoundError if not found.
-   **/
+  /** Given a job's id, return data about job.
+*
+* Returns { id, title, salary, equity, companyHandle }
+*
+* Throws NotFoundError if not found.
+**/
 
 
-  static async get(id){
+  static async get(id) {
     const jobsRes = await db.query(
       `SELECT
       id,
@@ -94,7 +94,7 @@ class Job {
       [id]
     );
     const job = jobsRes.rows[0];
-    if(!job) throw new NotFoundError(`No company: ${id}`);
+    if (!job) throw new NotFoundError(`No company: ${id}`);
     return job;
   }
 
@@ -111,89 +111,85 @@ class Job {
    */
 
 
-  static async update(id, data){
+  static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(
       data, {
-        companyHandle:"company_handle"
-      });
-    
-    const idVarIdx = "$"+(values.length+1);
+      companyHandle: "company_handle"
+    });
 
-    const querySQL = 
-    `UPDATE jobs
+    const idVarIdx = "$" + (values.length + 1);
+
+    const querySQL =
+      `UPDATE jobs
     SET ${setCols}
     WHERE id = ${idVarIdx}
     RETURNING id, title, salary, equity, company_handle AS "companyHandle"
     `
-    const result = await db.query(querySQL,[...values, id]);
+    const result = await db.query(querySQL, [...values, id]);
     const job = result.rows[0];
-    if( !job ) throw new NotFoundError(`No job: ${id}`)
-    
+    if (!job) throw new NotFoundError(`No job: ${id}`)
+
     return job
   }
-    
+
   /** Delete given job from database; returns undefined.
    *
    * Throws NotFoundError if job not found.
    **/
 
-   static async remove(id) {
+  static async remove(id) {
     const result = await db.query(
-        `DELETE
+      `DELETE
            FROM jobs
            WHERE id = $1
            RETURNING id`,
-        [id]);
+      [id]);
     const job = result.rows[0];
     if (!job) throw new NotFoundError(`No company: ${id}`);
   }
 
 
- /******************************** HELPER FUNCTIONS *********************************/
- 
- /**
- * search is request body that may include fields to filter by
- * ex. {"minSalary" : 100000, "hasEquity": true}
- * 
- * returns SQL WHERE conditions and array of data to fill in conditions
- * { sqlFilter :'"salary >= $1 AND equity = $2',
- * values: [100000, true] }
- */
- 
- static sqlForJobFilter(search) {
-  const keys = Object.keys(search);
+  /******************************** HELPER FUNCTIONS *********************************/
 
-  const valid_keys = new Set(['title', 'minSalary', 'hasEquity']);
+  /**
+  * search is request body that may include fields to filter by
+  * ex. {"minSalary" : 100000, "hasEquity": true}
+  * 
+  * returns SQL WHERE conditions and array of data to fill in conditions
+  * { sqlFilter :'"salary >= $1 AND equity >= 0',
+  * values: [100000, true] }
+  */
 
-  keys.forEach(function(key) {
-    if (!(valid_keys.has(key))) {
-      throw new BadRequestError("Invalid filter");
-    } 
-  }); 
+  static sqlForJobFilter(search) {
+    const keys = Object.keys(search);
 
-  const sqlFilter = [];
-  let idx = 1;
+    const valid_keys = new Set(['title', 'minSalary', 'hasEquity']);
 
-  if ( search.title ) {
-    search.title = `%${search.title}%`
-    sqlFilter.push(`"title" ILIKE $${idx}`);
-    idx++;
-  }
-  if ( search.minSalary ) {
-    sqlFilter.push(`"salary" >= $${idx}`);
-    idx++;
-  }
-  if ( search.hasEquity === true ) {
-    search.hasEquity = 0;
-    sqlFilter.push(`"equity" > $${idx}`);
-    idx++;
-  }
+    for (key of keys) {
+      if (!(valid_keys.has(key))) {
+        throw new BadRequestError("Invalid filter");
+      }
+    }
 
-  return {
-    sqlFilter: sqlFilter.join(" AND "),
-    values: Object.values(search),
+    const sqlFilter = [];
+
+    if (search.title) {
+      search.title = `%${search.title}%`
+      sqlFilter.push(`title ILIKE $${sqlFilter.length + 1}`);
+    }
+    if (search.minSalary) {
+      sqlFilter.push(`salary >= $${sqlFilter.length + 1}`);
+    }
+    if (search.hasEquity === true) {
+      search.hasEquity = 0;
+      sqlFilter.push(`equity > $${sqlFilter.length + 1}`);
+    }
+
+    return {
+      sqlFilter: sqlFilter.join(" AND "),
+      values: Object.values(search),
+    };
   };
-};
 
 }
 

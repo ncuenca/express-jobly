@@ -202,14 +202,39 @@ describe("findFilter", function () {
 
 describe("get", function () {
   test("works", async function () {
-    let company = await Company.get("c1");
-    expect(company).toEqual({
-      handle: "c1",
-      name: "C1",
-      description: "Desc1",
-      numEmployees: 1,
-      logoUrl: "http://c1.img",
-    });
+    let company = await Company.get("c2");
+    expect(company).toEqual([{
+      handle: "c2",
+      name: "C2",
+      description: "Desc2",
+      numEmployees: 2,
+      logoUrl: "http://c2.img",
+    }, 
+    [
+      {"equity": "0", 
+        "id": expect.any(Number), 
+        "salary": 120000, 
+        "title": "t2"
+      },
+      {
+        "equity": "0",
+        "id": expect.any(Number),
+        "salary": 160000,
+        "title": "t3",
+      }
+    ]]);
+  });
+
+  test("works no jobs", async function () {
+    let company = await Company.get("c3");
+    expect(company).toEqual([{
+      handle: "c3",
+      name: "C3",
+      description: "Desc3",
+      numEmployees: 3,
+      logoUrl: "http://c3.img",
+    }, 
+    []]);
   });
 
   test("not found if no such company", async function () {

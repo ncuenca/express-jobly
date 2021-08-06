@@ -104,12 +104,21 @@ class Company {
            FROM companies
            WHERE handle = $1`,
         [handle]);
-
     const company = companyRes.rows[0];
 
+    const jobsRes = await db.query(
+      `SELECT id,
+              title,
+              salary,
+              equity
+           FROM jobs
+           WHERE company_handle = $1`,
+        [handle]);
+    const jobs = jobsRes.rows;
+    
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
-    return company;
+    return [company, jobs];
   }
 
   /** Update company data with `data`.

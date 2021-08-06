@@ -22,7 +22,7 @@ describe("create job",  function() {
 
     title: "newPosition",
     salary: 100000,
-    equity: 0.5,
+    equity: "0.5",
     companyHandle: "c1"
   };
 
@@ -201,7 +201,7 @@ describe("update", function () {
   const updateData = {
     title:"updated",
     salary:1000000,
-    equity:1,
+    equity:"1",
   };
 
   test("works", async function () {
