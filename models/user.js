@@ -127,19 +127,19 @@ class User {
     //    GROUP BY users.username, job_id
     //    ORDER BY users.username`,
     // );
-    console.log(result);
-    const usernames = [];
-    const userInfos = [];
-    let userJobs;
-    for (let user of result.rows) {
-      if (!(usernames.has(user.username))) {
-        userJobs = [];
-        usernames.push(user.username);
-        userJobs.push(user.jobId);
-      } else {
-        userJobs.push(user.jobId);
-      }
-    }
+    // console.log(result);
+    // const usernames = [];
+    // const userInfos = [];
+    // let userJobs;
+    // for (let user of result.rows) {
+    //   if (!(usernames.has(user.username))) {
+    //     userJobs = [];
+    //     usernames.push(user.username);
+    //     userJobs.push(user.jobId);
+    //   } else {
+    //     userJobs.push(user.jobId);
+    //   }
+    // }
     // WORKING
     // const result = await db.query(
     //       `SELECT username,
@@ -178,9 +178,44 @@ class User {
       `
     );
     console.log(appsRes.rows);
-    const users = userRes.rows
+    const users = userRes.rows;
+    // check if this is an array of objects
+    const manyApps = appsRes.rows;
     
-    return;
+    let uniqueApps = {}
+
+    for(let app of manyApps){
+      if (uniqueApps[app.username]){
+        uniqueApps[app.username].push(app.job_id)
+      }
+      else{
+        uniqueApps[app.username] = [app.job_id]
+      }
+    }
+
+    for( let user of users){
+      if (uniqueApps[user.username]){
+        user.job = uniqueApps[user.username];
+      }else{
+        user.job =[];
+      }
+    }
+
+    // console.log(result);
+    // const usernames = [];
+    // const userInfos = [];
+    // let userJobs;
+    // for (let user of result.rows) {
+    //   if (!(usernames.has(user.username))) {
+    //     userJobs = [];
+    //     usernames.push(user.username);
+    //     userJobs.push(user.jobId);
+    //   } else {
+    //     userJobs.push(user.jobId);
+    //   }
+    // }
+    
+    return user;
   }
 
   /** Given a username, return data about user.
