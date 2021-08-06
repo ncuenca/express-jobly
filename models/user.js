@@ -127,19 +127,19 @@ class User {
     //    GROUP BY users.username, job_id
     //    ORDER BY users.username`,
     // );
-    // console.log(result);
-    // const usernames = new Set();
-    // const userInfos = [];
-    // let userJobs;
-    // for (let user of result.rows) {
-    //   if (!(usernames.has(user.username))) {
-    //     userJobs = [];
-    //     usernames.push(user.username);
-    //     userJobs.push(user.jobId);
-    //   } else {
-    //     userJobs.push(user.jobId);
-    //   }
-    // }
+    console.log(result);
+    const usernames = [];
+    const userInfos = [];
+    let userJobs;
+    for (let user of result.rows) {
+      if (!(usernames.has(user.username))) {
+        userJobs = [];
+        usernames.push(user.username);
+        userJobs.push(user.jobId);
+      } else {
+        userJobs.push(user.jobId);
+      }
+    }
     // WORKING
     // const result = await db.query(
     //       `SELECT username,
@@ -161,7 +161,7 @@ class User {
 
     // )
 
-    const result = await db.query(
+    const userRes = await db.query(
           `SELECT username,
                   first_name AS "firstName",
                   last_name AS "lastName",
@@ -171,16 +171,16 @@ class User {
            ORDER BY username`,
     );
 
-       const jobApplication = await db.query(
-        `SELECT username, job_id
-        FROM applications
-        GROUP BY username
-        `
-      )
-
-    const users = result.rows
+    const appsRes = await db.query(
+      `SELECT username, job_id
+      FROM applications
+      ORDER BY username
+      `
+    );
+    console.log(appsRes.rows);
+    const users = userRes.rows
     
-    return result.rows;
+    return;
   }
 
   /** Given a username, return data about user.
