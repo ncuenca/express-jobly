@@ -99,19 +99,55 @@ class User {
 
   /** Find all users.
    *
-   * Returns [{ username, first_name, last_name, email, is_admin }, ...]
+   * Returns [{ username, first_name, last_name, email, is_admin, jobs}, ...]
+   *    jobs is [job_id, job_id, job_id]
    **/
 
   static async findAll() {
     const result = await db.query(
-          `SELECT username,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
-                  email,
-                  is_admin AS "isAdmin"
-           FROM users
-           ORDER BY username`,
+      `SELECT users.username,
+              job_id as "jobId"
+       FROM applications
+       ON users.username = applications.username
+       GROUP BY users.username, job_id
+       ORDER BY users.username`,
     );
+    // const result = await db.query(
+    //   `SELECT users.username,
+    //           first_name AS "firstName",
+    //           last_name AS "lastName",
+    //           email,
+    //           is_admin AS "isAdmin",
+    //           job_id as "jobId"
+    //    FROM users
+    //    JOIN applications
+    //    ON users.username = applications.username
+    //    GROUP BY users.username, job_id
+    //    ORDER BY users.username`,
+    // );
+    console.log(result);
+    const usernames = new Set();
+    const userInfos = [];
+    let userJobs;
+    for (let user of result.rows) {
+      if (!(usernames.has(user.username))) {
+        userJobs = [];
+        usernames.push(user.username);
+        userJobs.push(user.jobId);
+      } else {
+        userJobs.push(user.jobId);
+      }
+    }
+    // WORKING
+    // const result = await db.query(
+    //       `SELECT username,
+    //               first_name AS "firstName",
+    //               last_name AS "lastName",
+    //               email,
+    //               is_admin AS "isAdmin"
+    //        FROM users
+    //        ORDER BY username`,
+    // );
 
     // const jobApplication = await db.query(
     //   `SELECT job_id
@@ -129,7 +165,7 @@ class User {
   /** Given a username, return data about user.
    *
    * Returns { username, first_name, last_name, is_admin, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   *   where jobs is [job_id, job_id, ...]
    *
    * Throws NotFoundError if user not found.
    **/
@@ -145,19 +181,19 @@ class User {
            WHERE username = $1`,
         [username],
     );
-
-    // const applications = await db.query(
-    //   `SELECT job_id
-    //   FROM applications
-    //   WHERE username = $1
-    //   `,[username]
-    // )
-
     const user = userRes.rows[0];
-    // const applicationsId = application.rows
+
+    const appRes = await db.query(
+      `SELECT job_id
+      FROM applications
+      WHERE username = $1
+      `,[username]
+    )
+    const appIds = appRes.rows
+
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
-    return [user, rows ];
+    return [user, appIds];
   }
 
   /** Update user data with `data`.
@@ -222,18 +258,22 @@ class User {
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
 
-  // static async apply(username, jobId){
+  /** Add job to user's applications; returns job_id */
 
-  //   let result = await db.query(
-  //     `INSERT INTO applications
-  //     (username, job_id)
-  //     set ($1 , $2)
-  //     RETURNING job_id      
-  //     `,[username, jobId]
-  //   )
-  //   const application = result.rows[0]
-  //   if (!application) throw new NotFoundError(`Can not apply to this job with id of ${application}`)
-  // }
+  static async apply(username, jobId){
+
+    let result = await db.query(
+      `INSERT INTO applications
+      (username, job_id)
+      VALUES ($1 , $2)
+      RETURNING job_id      
+      `,[username, jobId]
+    )
+    const application = result.rows[0];
+    if (!application) throw new NotFoundError(`Can not apply to this job with id of ${application}`);
+    console.log("THIS IS APPLICATION ----------------- ", application);
+    return application.job_id;
+  }
 }
 
 

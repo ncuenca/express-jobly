@@ -39,6 +39,21 @@ router.post("/", ensureAdmin, async function (req, res, next) {
   return res.status(201).json({ user, token });
 });
 
+/** POST /[username]/jobs/[id]  => { user, token }
+ *
+ * Allows user to apply for a job (or an admin to do it for them)
+ *
+ * This returns the newly created user and an authentication token for them:
+ *  { applied: { jobId } }
+ *
+ * Authorization required: user is editing their own info or admin
+ **/
+
+router.post("/:username/jobs/:id", ensureUserOrAdmin, async function (req, res, next) {
+  const applied = await User.apply(req.params.username, req.params.id);
+  return res.status(201).json({ applied });
+});
+
 
 /** GET / => { users: [ {username, firstName, lastName, email }, ... ] }
  *
@@ -61,8 +76,8 @@ router.get("/", ensureAdmin, async function (req, res, next) {
  **/
 
 router.get("/:username", ensureUserOrAdmin, async function (req, res, next) {
-  const user = await User.get(req.params.username);
-  return res.json({ user });
+  const [user, apps] = await User.get(req.params.username);
+  return res.json({ ...user, jobs: apps });
 });
 
 
