@@ -104,14 +104,16 @@ class User {
    **/
 
   static async findAll() {
-    const result = await db.query(
-      `SELECT users.username,
-              job_id as "jobId"
-       FROM applications
-       ON users.username = applications.username
-       GROUP BY users.username, job_id
-       ORDER BY users.username`,
-    );
+
+    // const result = await db.query(
+    //   `SELECT users.username,
+    //           job_id as "jobId"
+    //    FROM applications
+    //    ON users.username = applications.username
+    //    GROUP BY users.username, job_id
+    //    ORDER BY users.username`,
+    // );
+
     // const result = await db.query(
     //   `SELECT users.username,
     //           first_name AS "firstName",
@@ -125,19 +127,19 @@ class User {
     //    GROUP BY users.username, job_id
     //    ORDER BY users.username`,
     // );
-    console.log(result);
-    const usernames = new Set();
-    const userInfos = [];
-    let userJobs;
-    for (let user of result.rows) {
-      if (!(usernames.has(user.username))) {
-        userJobs = [];
-        usernames.push(user.username);
-        userJobs.push(user.jobId);
-      } else {
-        userJobs.push(user.jobId);
-      }
-    }
+    // console.log(result);
+    // const usernames = new Set();
+    // const userInfos = [];
+    // let userJobs;
+    // for (let user of result.rows) {
+    //   if (!(usernames.has(user.username))) {
+    //     userJobs = [];
+    //     usernames.push(user.username);
+    //     userJobs.push(user.jobId);
+    //   } else {
+    //     userJobs.push(user.jobId);
+    //   }
+    // }
     // WORKING
     // const result = await db.query(
     //       `SELECT username,
@@ -159,6 +161,25 @@ class User {
 
     // )
 
+    const result = await db.query(
+          `SELECT username,
+                  first_name AS "firstName",
+                  last_name AS "lastName",
+                  email,
+                  is_admin AS "isAdmin"
+           FROM users
+           ORDER BY username`,
+    );
+
+       const jobApplication = await db.query(
+        `SELECT username, job_id
+        FROM applications
+        GROUP BY username
+        `
+      )
+
+    const users = result.rows
+    
     return result.rows;
   }
 
