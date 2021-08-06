@@ -10,6 +10,7 @@ const {
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
+const { application } = require("express");
 
 /** Related functions for users. */
 
@@ -112,6 +113,16 @@ class User {
            ORDER BY username`,
     );
 
+    const jobApplication = await db.query(
+      `SELECT job_id
+      FROM applications
+      JOIN users 
+      ON users.username = applications.username
+      ORDER BY users.username
+      `
+
+    )
+
     return result.rows;
   }
 
@@ -135,11 +146,18 @@ class User {
         [username],
     );
 
-    const user = userRes.rows[0];
+    const applications = await db.query(
+      `SELECT job_id
+      FROM applications
+      WHERE username = $1
+      `,[username]
+    )
 
+    const user = userRes.rows[0];
+    const applicationsId = application.rows
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
-    return user;
+    return [user, rows ];
   }
 
   /** Update user data with `data`.
@@ -201,8 +219,20 @@ class User {
         [username],
     );
     const user = result.rows[0];
-
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  static async apply(username, jobId){
+
+    let result = await db.query(
+      `INSERT INTO applications
+      (username, job_id)
+      set ($1 , $2)
+      RETURNING job_id      
+      `,[username, jobId]
+    )
+    const application = result.rows[0]
+    if (!application) throw new NotFoundError(`Can not apply to this job with id of ${application}`)
   }
 }
 
