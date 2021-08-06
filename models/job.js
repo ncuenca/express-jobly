@@ -145,7 +145,6 @@ class Job {
            RETURNING id`,
         [id]);
     const job = result.rows[0];
-    console.log(job)
     if (!job) throw new NotFoundError(`No company: ${id}`);
   }
 

@@ -179,8 +179,132 @@ describe("GET /jobs/:handle", function () {
   });
 });
 
+/************************************** PATCH /job/:id */
+
+describe("PATCH /jobs/:id", function () {
+  test("works for admin", async function () {
+    let jobId = await getJobId();
+    const resp = await request(app)
+      .patch(`/jobs/${jobId}`)
+      .send({
+        title: "updatePosition",
+      })
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.body).toEqual({
+      job: {
+        id: expect.any(Number),
+        title: 'updatePosition',
+        salary: 100000,
+        equity: "0.02",
+        companyHandle: 'c1',
+      },
+    });
+  });
+
+  test("non-admin users will throw Unauthorized Error", async function () {
+    let jobId = await getJobId();
+    const resp = await request(app)
+      .patch(`/jobs/${jobId}`)
+      .send({
+        name: "will-Fail",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+    expect(resp.body).toEqual({"error": {
+            "message": "You must be an administrator to do this",
+            "status": 401,
+          }});
+  });
+
+  test("unauth for anon", async function () {
+    let jobId = await getJobId();
+    const resp = await request(app)
+      .patch(`/jobs/${jobId}`)
+      .send({
+        name: "will-fail",
+      });
+    expect(resp.statusCode).toEqual(401);
+  })
+
+  test("not found on no such job", async function () {
+    const badJobId = 0;
+    const resp = await request(app)
+      .patch(`/jobs/${badJobId}`)
+      .send({
+        title: "bad id",
+      })
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+
+  test("bad request on id change attempt", async function () {
+    const jobId = getJobId;
+    const resp = await request(app)
+      .patch(`/jobs/${jobId}`)
+      .send({
+        id: 25,
+      })
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("bad request on invalid data", async function () {
+    const jobId = getJobId;
+    const resp = await request(app)
+      .patch(`/jobs/${jobId}`)
+      .send({
+        salary: "not-really-a-number",
+      })
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+
+});
+
+
+/************************************** DELETE /jobs/:id */
+
+describe("DELETE /jobs/:id", function () {
+  test("works for admins", async function () {
+    const jobId = await getJobId();
+    const resp = await request(app)
+      .delete(`/jobs/${jobId}`)
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.body).toEqual({ deleted: String(jobId) });
+  });
+
+  test("non-admin users will throw Unauthorized Error", async function () {
+    const jobId = await getJobId();
+    const resp = await request(app)
+      .delete(`/jobs/${jobId}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+    expect(resp.body).toEqual({"error": {
+            "message": "You must be an administrator to do this",
+            "status": 401,
+          }});
+  });
+
+  test("unauth for anon", async function () {
+    const jobId = await getJobId();
+    const resp = await request(app)
+      .delete(`/jobs/${jobId}`)
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("not found for no such company", async function () {
+    const badJobId = 0;
+    const resp = await request(app)
+      .delete(`/jobs/${badJobId}`)
+      .set("authorization", `Bearer ${a1Token}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
+
+
 /************************************** HELPER FUNCTION */
 async function getJobId() {
+  
   let result = await db.query(`
   SELECT id
   FROM jobs
