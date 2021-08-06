@@ -170,6 +170,7 @@ class User {
            FROM users
            ORDER BY username`,
     );
+    const users = userRes.rows;
 
     const appsRes = await db.query(
       `SELECT username, job_id
@@ -177,9 +178,6 @@ class User {
       ORDER BY username
       `
     );
-    console.log(appsRes.rows);
-    const users = userRes.rows;
-    // check if this is an array of objects
     const manyApps = appsRes.rows;
     
     let uniqueApps = {}
@@ -200,22 +198,8 @@ class User {
         user.job =[];
       }
     }
-
-    // console.log(result);
-    // const usernames = [];
-    // const userInfos = [];
-    // let userJobs;
-    // for (let user of result.rows) {
-    //   if (!(usernames.has(user.username))) {
-    //     userJobs = [];
-    //     usernames.push(user.username);
-    //     userJobs.push(user.jobId);
-    //   } else {
-    //     userJobs.push(user.jobId);
-    //   }
-    // }
     
-    return user;
+    return users;
   }
 
   /** Given a username, return data about user.
